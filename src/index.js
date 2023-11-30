@@ -1,38 +1,9 @@
-import axios from 'axios';
+import { fetchBreeds, fetchCatByBreed, displayError } from './cat-api.js';
 import SlimSelect from 'slim-select';
 
 let slimSelect = null;
-
-axios.defaults.headers.common['x-api-key'] =
-  'live_BGHVXS9HRJW6rgW9IQYtalpwpiOTRRwNlGFWeCidmk1cMnZOsP2CCA8I8oCDINU9';
-
-function displayError() {
-  errorElement.textContent =
-    'Oops! Something went wrong! Try reloading the page!';
-  errorElement.style.display = 'block';
-  breedSelect.style.display = 'none';
-  loader.style.display = 'none';
-}
-
-const fetchBreeds = () => {
-  return axios
-    .get('https://api.thecatapi.com/v1/breeds')
-    .then(response => response.data)
-    .catch(error => {
-      displayError();
-      console.error(error);
-    });
-};
-
-const fetchCatByBreed = breedId => {
-  return axios
-    .get(`https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}`)
-    .then(response => response.data)
-    .catch(error => {
-      displayError();
-      console.error(error);
-    });
-};
+let errorElement = null;
+let loader = null;
 
 function createMarkup(cats) {
   return cats
@@ -53,14 +24,14 @@ function createMarkup(cats) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  errorElement = document.querySelector('.error');
+  loader = document.querySelector('.loader');
   const breedSelect = document.querySelector('.breed-select');
-  const loader = document.querySelector('.loader');
-  const errorElement = document.querySelector('.error');
   const catInfo = document.querySelector('.cat-info');
 
-  errorElement.style.display = 'none';
+  loader.style.display = 'block';
 
-  fetchBreeds()
+  fetchBreeds(errorElement, loader)
     .then(breeds => {
       breeds.forEach(breed => {
         const option = document.createElement('option');
@@ -73,19 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
         select: breedSelect,
       });
 
+      breedSelect.style.display = 'block';
       loader.style.display = 'none';
+      errorElement.style.display = 'none';
     })
-    .catch(() => displayError());
+    .catch(() => {
+      displayError(errorElement, loader);
+    });
 
   breedSelect.addEventListener('change', event => {
     loader.style.display = 'block';
+    errorElement.style.display = 'none';
     catInfo.innerHTML = '';
-    fetchCatByBreed(event.target.value)
+
+    fetchCatByBreed(event.target.value, errorElement, loader)
       .then(cats => {
         const markup = createMarkup(cats);
         catInfo.innerHTML = markup;
         loader.style.display = 'none';
       })
-      .catch(() => displayError());
+      .catch(() => {
+        displayError(errorElement, loader);
+      });
   });
 });
