@@ -1,0 +1,22 @@
+.error {
+  font-weight: bold;
+  color: red;
+}
+
+.cat-card {
+  display: flex;
+  gap: 20px;
+}
+
+.breed-select {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+.cat-img {
+  width: 250px;
+}
+
+.text-bold {
+  font-weight: bold;
+}
